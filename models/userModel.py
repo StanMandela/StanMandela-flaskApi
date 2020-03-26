@@ -2,6 +2,7 @@ from app import db,ma
 from app import  SQLAlchemy
 
 from sqlalchemy import func
+from  werkzeug.security import check_password_hash
 
 
 class UserModel(db.Model):
@@ -23,8 +24,37 @@ class UserModel(db.Model):
     def fetch_all(cls):
         return cls.query.all()
 
+    @classmethod
+    def check_email_exists(cls,email):
+        record=cls.query.filter_by(email=email).first()
+        if record:
+            return  True
+        else:
+            return  False
+
+    @classmethod
+    def validate_password(cls,email,password):
+        record = cls.query.filter_by(email=email).first()
+        if record and check_password_hash(record.password,password):
+            return True
+        else:
+            return False
+
+    @classmethod
+    def get_user_id(cls,email):
+        record= cls.query.filter_by(email=email).first().id
+        return record
+
+    @classmethod
+    def get_userby_id(cls,id):
+        return cls.query.filter_by(id=id).first()
+
     def save_toDB(self):
         db.session.add(self)
+        db.session.commit()
+
+    def delete_from_db(self):
+        db.session.delete(self)
         db.session.commit()
 
 class UserSchema(ma.Schema):

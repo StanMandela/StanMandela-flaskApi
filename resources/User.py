@@ -19,26 +19,16 @@ class UserList(Resource):
     def get(self):
         """Use this Endpoint to get all users"""
         users=UserModel.fetch_all()
-        return users_schema.dump(users)
+        return users_schema.dump(users),200
 
-    @api.expect(user_model)
-    def post(self):
-        """Add a new user"""
-        data= api.payload
-        users=UserModel(
-            fullname=data["fullname"],
-            email=data['email'],
-            password=data['password']
 
-        )
-        users.save_toDB()
-        return  user_schema.dump(users),201
 
 @ns_users.route('/<int:id>')
 class Users(Resource):
     def get(self,id):
         """Get user by id"""
-        pass
+        user= UserModel.fetch_all(id)
+        return users_schema.dump(user),200
 
     def put(self,id):
         """Edit a new user by id """
@@ -46,6 +36,11 @@ class Users(Resource):
 
     def delete(self,id):
         """Delete user by id"""
-
+        user=UserModel.fetch_all(id)
+        if user:
+            user.delete_from_db()
+            return {"Message":'User Deleted Successfully'}
+        else:
+            return {"Message":'The User does not exist'}
 
 

@@ -1,6 +1,6 @@
-from app import  api,Resource, fields
+from app import  api,Resource, fields,jwt_required,get_jwt_identity
 from models.taskmodel import TaskModel,task_schema,tasks_schema
-
+from  models.userModel import UserModel,users_schema,user_schema
 #define my namespaces
 
 ns_tasks=api.namespace('tasks', description="All opartation of tasks")
@@ -9,8 +9,8 @@ ns_tasks=api.namespace('tasks', description="All opartation of tasks")
 #models
 a_task_model =api.model( 'Task',{
     'title':fields.String(),
-    'description':fields.String(),
-    'user_id':fields.Integer()
+    'description':fields.String()
+
 })
 
 # tasks= [
@@ -23,13 +23,17 @@ a_task_model =api.model( 'Task',{
 @ns_tasks.route('')
 class TaskList(Resource):
 
-
+    @jwt_required
     def get(self):
         """Use  this endpoint to get all the tasks"""
-        tasks=TaskModel.fetch_all()
-        return tasks_schema.dump(tasks)
+        # tasks=TaskModel.fetch_all()
+        user_id=get_jwt_identity()
+        user=UserModel.get_userby_id(user_id)
+        user_tasks =user.tasks
+        return tasks_schema.dump(user_tasks),200
 
-    @api.expect(a_task_model)
+    @api.expect(a_task_model) #use Jwt requierd to prevent  """
+    @jwt_required
     def post(self):
         """Use this end point to add a new task"""
         # data["id"]=len(tasks)+1
@@ -37,7 +41,8 @@ class TaskList(Resource):
         # return  data ,201
 
         data = api.payload
-        task=TaskModel(title=data["title"],description=data["description"])
+        task=TaskModel(title=data["title"],description=data["description"],
+                       user_id=get_jwt_identity()) #to get the id of the logged on person
         task.save_toDB()
         return  task_schema.dump(task),201
 
@@ -47,6 +52,7 @@ class TaskList(Resource):
 class Task(Resource):
 
     @api.expect(a_task_model)
+    @jwt_required
     def get(self,id):
         """get task by Id"""
 
@@ -55,7 +61,7 @@ class Task(Resource):
         tasks = TaskModel.fetch_all()
         task=next(filter(lambda x :x.id==id,tasks),None)
         return task_schema.dump(task),200
-
+    @jwt_required
     def put(self,id):
         """Edit a task  by its Id """
         data= api.payload
@@ -74,7 +80,7 @@ class Task(Resource):
 
         return {"message":"Task not found"},404
 
-
+    @jwt_required
     def delete(self, id):
         """delete a task by Id"""
         tasks= TaskModel.fetch_all()
