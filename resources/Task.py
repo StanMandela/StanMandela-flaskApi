@@ -23,6 +23,7 @@ a_task_model =api.model( 'Task',{
 @ns_tasks.route('')
 class TaskList(Resource):
 
+    @api.doc(security='apikey')
     @jwt_required
     def get(self):
         """Use  this endpoint to get all the tasks"""
@@ -32,6 +33,7 @@ class TaskList(Resource):
         user_tasks =user.tasks
         return tasks_schema.dump(user_tasks),200
 
+    @api.doc(security='apikey')
     @api.expect(a_task_model) #use Jwt requierd to prevent  """
     @jwt_required
     def post(self):
@@ -51,6 +53,7 @@ class TaskList(Resource):
 @ns_tasks.route('/<int:id>')
 class Task(Resource):
 
+    @api.doc(security='apikey')#makes the def methods require api token to be authorized
     @api.expect(a_task_model)
     @jwt_required
     def get(self,id):
