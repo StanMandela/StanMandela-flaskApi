@@ -12,3 +12,7 @@ class Production():
  DEBUG = False
 
  JWT_SECRET_KEY='GHJKHA!#H67'
+
+class Testing():
+     SQLALCHEMY_DATABASE_URI='sqlite:///data.db'
+     JWT_SECRET_KEY = 'GHJKHA!#H67'
